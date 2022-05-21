@@ -39,8 +39,10 @@ struct Queue_t* queue = NULL;
 
 static const char* prod1 = "TP1";
 static const char* prod2 = "TP2";
+static const char* prod3 = "TP3";
 static const char* cons1 = "TC1";
 static const char* cons2 = "TC2";
+static const char* cons3 = "TC3";
 
 //---------------------------------------------------------------
 static void* prod_func(void* arg)
@@ -97,7 +99,7 @@ static void* cons_func(void* arg)
     {
         printf("Thread %s is waiting for the signal\n",thread);
         printf("\n");
-        pthread_cond_wait(&queue->q_cond,&queue->q_mutex);
+        pthread_cond_broadcast(&queue->q_cond,&queue->q_mutex);
         printf("Thread %s got the signal and restarting its execution\n",thread);
     }
 
@@ -110,7 +112,7 @@ static void* cons_func(void* arg)
 
     }
 
-    pthread_cond_broadcast(&queue->q_cond);
+    pthread_cond_signal(&queue->q_cond);
     printf("Thread %s finished its execution\n",thread);
     printf("\n");
     pthread_mutex_unlock(&queue->q_mutex);
@@ -130,20 +132,27 @@ int main(int argc,char** argv)
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_JOINABLE);
 
-    pthread_t prod_thr1,prod_thr2;
-    pthread_t cons_thr1,cons_thr2;
+    pthread_t prod_thr1,prod_thr2,prod_thr3;
+    pthread_t cons_thr1,cons_thr2,cons_thr3;
 
     pthread_create(&prod_thr1,&attr,prod_func,(void*)prod1);
     pthread_create(&prod_thr2,&attr,prod_func,(void*)prod2);
+    pthread_create(&prod_thr3,&attr,prod_func,(void*)prod3);
     pthread_create(&cons_thr1,&attr,cons_func,(void*)cons1);
     pthread_create(&cons_thr2,&attr,cons_func,(void*)cons2);
+    pthread_create(&cons_thr3,&attr,cons_func,(void*)cons3);
 
     pthread_join(prod_thr1,0);
     pthread_join(prod_thr2,0);
+    pthread_join(prod_thr3,0);
     pthread_join(cons_thr1,0);
     pthread_join(cons_thr2,0);
+    pthread_join(cons_thr3,0);
 
-
+    printf("\n");
+    printf("Printing Queue\n");
+    print_Queue(queue);
+    printf("\n");
     
     printf("Program Finished!\n");
     pthread_exit(0);
